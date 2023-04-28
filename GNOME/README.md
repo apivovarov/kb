@@ -1,3 +1,18 @@
+### XRDP speedup
+To speedup xrdp:
+- Replace 32bit bpp with 16bit. File `/etc/xrdp/xrdp.ini`
+```
+max_bpp=16
+```
+- Disable GNOME animations
+```
+# run without sudo !!!
+gsettings set org.gnome.desktop.interface enable-animations false
+
+gsettings set org.gnome.shell.extensions.dash-to-dock animate-show-apps false
+```
+- Use black background wallpaper image - [wallpaper_black_20x20.png](wallpaper_black_20x20.png)
+
 ### GNOME App Launcher
 To add App Launcher create file `~/.local/share/applications/<app_name>.desktop`
 ```bash
