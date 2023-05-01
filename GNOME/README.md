@@ -6,7 +6,7 @@ max_bpp=16
 ```
 - Disable GNOME animations
 ```
-# run without sudo !!!
+# run in gnome desktop terminal without sudo !!!
 gsettings set org.gnome.desktop.interface enable-animations false
 
 gsettings set org.gnome.shell.extensions.dash-to-dock animate-show-apps false
