@@ -1,8 +1,19 @@
 # Compile Stable Diffusion Model with AITemplate and Deploy it as AWS Sagemaker Endpoint
 
+## Select AWS instance
+Select AWS instance where you want to host the model.
+Sagemaker supports the following instances:
+
+- ml.p3  - V100
+- ml.g4dn - T4
+- ml.g5  - A10G
+- ml.p4d - A100 (limited availability)
+
+You need to start similar ec2 instance to compile the model. Ubuntu 20.04 OS should work.
+
 ## Install requires software
 
-We need to install the following packages
+We need to install the following packages on the ec2 instance
 - [cuda-drivers](https://developer.nvidia.com/cuda-toolkit-archive)
 - [cuda](https://developer.nvidia.com/cuda-toolkit-archive)
 - [cuda-drivers-fabricmanager](https://docs.nvidia.com/datacenter/tesla/pdf/fabric-manager-user-guide.pdf)
@@ -11,28 +22,28 @@ We need to install the following packages
 
 ## Sagemaker Container Images
 
-Sagemaker Endroint runs models inside Sagemaker Deep Learning containers. In order to be compatible with Sagemaker container libraries ee need to compile our models in sagemaker container.
+Sagemaker Endroint runs models inside Sagemaker Deep Learning containers. In order to be compatible with Sagemaker container we are going to compile our models in sagemaker container.
 
 The list of Available Sagemaker Container Images is here - [aws/deep-learning-containers](https://github.com/aws/deep-learning-containers/blob/master/available_images.md)
 
 Lets pull the following Sagemaker Pytorch 2.0.0 inference image
-```
+```bash
 $(aws ecr get-login --no-include-email --registry-ids 763104351884 --region us-west-2)
 docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker
 ```
 
-Lets run the compilation container. It will use GPUs and couple shared folders on the host
-```
+Lets run Sagemaker container in an interactive mode. It will use GPUs and couple shared folders on the host
+```bash
 docker run -ti \
 --name sm_pt200 \
---runtime=nvidia --gpus all \
+--runtime=nvidia --gpus 1 \
 -v ~/workspace:/root/workspace \
 -v ~/.cache/huggingface:/root/.cache/huggingface \
 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker /bin/bash
 ```
 
-Test that the container runs with Cuda
-```
+Test that the container sees GPU and Cuda is available
+```bash
 nvidia-smi
 ```
 Test PyTorch
@@ -45,7 +56,7 @@ torch.cuda.is_available()
 [AITemplate](https://github.com/facebookincubator/AITemplate) (AIT) is a Python framework that transforms deep neural networks into CUDA (NVIDIA GPU) / HIP (AMD GPU) C++ code for lightning-fast inference serving.
 
 To install AIT run the following inside the contailer:
-```
+```bash
 cd ~/workspace
 git clone --recursive https://github.com/facebookincubator/AITemplate
 
@@ -56,8 +67,8 @@ pip3 install dist/*.whl --force-reinstall
 ```
 
 Install additional python packages
-```
-pip3 install diffusers transformers accelerate click cuda-python
+```bash
+pip3 install diffusers transformers accelerate click cuda-python pyclean
 ```
 
 ## Compiler Stable Diffusion Model
@@ -65,25 +76,29 @@ AIT provides [exaple/05_stable_diffusion](https://github.com/facebookincubator/A
 
 ### Download Stable Diffusion model
 
-```
+```bash
 cd ~/workspace/AITemplate/examples/05_stable_diffusion
 
-# Edit scripts/download_pipeline.py and
-# - change model name to "stabilityai/stable-diffusion-2-1-base" for 512x512
-# - or to "stabilityai/stable-diffusion-2-1" for 768x768 output image
-# - comment out "use_auth_token=token ..." line
+# Stable Diffusion 2.1 has two editions on Huggingface.
+# - base edition - "stabilityai/stable-diffusion-2-1-base" 512x512
+# - regular edition - "stabilityai/stable-diffusion-2-1" 768x768
 
-# Download SD pipeline files to workdir tmp
+# Edit scripts/download_pipeline.py and
+# 1. change model name to
+# - "stabilityai/stable-diffusion-2-1-base" or to
+# - "stabilityai/stable-diffusion-2-1"
+# 2. comment out "use_auth_token=token ..." line
+
+# Download SD model files to workdir tmp
 python3 scripts/download_pipeline.py
 ```
 
 ### Compile Stable Diffusion model
 
-```
+```bash
 # Set correct model resolution
 H=512 # for stabilityai/stable-diffusion-2-1-base model
 H=768 # for stabilityai/stable-diffusion-2-1 model
-
 
 python3 scripts/compile.py --height $H --width $H
 
@@ -95,8 +110,8 @@ python3 scripts/compile.py --height $H --width $H
 
 ### Run model locally
 
-To run the model locally use demo.py script. Example.
-```
+To run the model locally use demo.py script. Example:
+```bash
 python3 scripts/demo.py \
 --height $H --width $H \
 --prompt "a photo of an astronaut riding a horse on mars"
@@ -107,7 +122,7 @@ It will generate example_ait.png file.
 ## Prepare Sagemaker Model
 
 ### Prepare sm_model folder
-```
+```bash
 mkdir -p sm_model/compiled
 
 mkdir sm_model/compiled/AutoencoderKL
@@ -123,7 +138,7 @@ mv tmp/UNet2DConditionModel/test.so sm_model/compiled/UNet2DConditionModel/
 mv tmp/diffusers-pipeline/stabilityai/stable-diffusion-v2/* sm_model/
 ```
 ### Prepare code sub-folder
-```
+```bash
 mkdir -p sm_model/code
 cd sm_model/code
 
@@ -131,6 +146,7 @@ cd sm_model/code
 cp ~/workspace/AITemplate/python/dist/aitemplate-0.3.dev0-py3-none-any.whl .
 
 # Create file requirements.txt and add the following lines into it (fix whl name if needed)
+
 /opt/ml/model/code/aitemplate-0.3.dev0-py3-none-any.whl
 accelerate
 diffusers
@@ -140,11 +156,13 @@ transformers
 wget https://raw.githubusercontent.com/apivovarov/kb/main/Sagemaker/AITemplate/code/inference.py
 wget https://raw.githubusercontent.com/apivovarov/kb/main/Sagemaker/AITemplate/code/pipeline_stable_diffusion_ait.py
 
-# Edit inference.py and set correct height and width in process_data function - 512x512 (for base model) or 768x768 (for regular model)
+# Edit inference.py file and set correct height and width in process_data() function - 512x512 (for base model) or 768x768 (for regular model)
 ```
 
 Finally, sm_model folder should contain the followong folders/files:
-```
+```bash
+tree sm_model
+
 sm_model/
 ├── code
 │   ├── aitemplate-0.3.dev0-py3-none-any.whl
@@ -181,11 +199,169 @@ sm_model/
 Exit from the SM container where we compiled the model
 
 Start SM container with the prepared model in serving mode
-```
+```bash
 docker run --rm \
---runtime=nvidia --gpus all \
+--runtime=nvidia --gpus 1 \
 -p 8080:8080 \
 -v ~/workspace/AITemplate/examples/05_stable_diffusion/sm_model:/opt/ml/model \
 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker serve
 ```
-Check if the system out shows any exceptions / stacktraces
+Check if the system out shows any exceptions / stack traces
+
+Prepare test_request.json file
+```json
+{
+    "prompt": "a photo of an astronaut riding a horse on mars"
+}
+```
+Send test request to the endpoint.
+
+Open another terminal and run the following
+```bash
+curl -s -d "@test_request.json" -H 'Content-Type: application/json' \
+-X POST http://localhost:8080/invocations -o output.json
+```
+`output.json` should contain json where images are encoded in base64, example:
+```json
+{"images": ["oW5K...AAAA"]}
+```
+Stop the container
+
+## Deploy the model to Sagemaker
+Create model tar.gz and upload it to s3
+```bash
+cd sm_model
+# remove python temp files
+sudo pyclean .
+# create model archive
+tar vzcf ../sm_model_g5.tar.gz *
+cd ..
+```
+Copy model archive to s3
+```bash
+aws s3 cp sm_model_g5.tar.gz s3://sagemaker-us-west-2-345967381662/stable-diffusion/text-to-image/
+```
+### Create Model
+```python
+import boto3
+# Prepare boto3 Sagemaker client
+region = "us-west-2"
+sm_client = boto3.client("sagemaker", region_name=region)
+
+# Role to give SageMaker service permission to access your account resources (s3, etc). Change role ARN to correct one.
+sagemaker_role = "arn:aws:iam::345967381662:role/service-role/AmazonSageMaker-ExecutionRole-20180829T140091"
+```
+```python
+### Create Sagemaker endpoint and deploy the model
+# https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html
+
+import yaml
+#Get model from S3
+model_url = f"s3://sagemaker-us-west-2-345967381662/stable-diffusion/text-to-image/sm_model_g5.tar.gz"
+
+#Get container image (prebuilt example)
+container = "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker"
+
+# ==== Create model ====
+model_name = "stable-diffusion-2-1-base-g5"
+
+create_model_response = sm_client.create_model(
+    ModelName = model_name,
+    ExecutionRoleArn = sagemaker_role,
+    Containers = [{
+        "Image": container,
+        "Mode": "SingleModel",
+        "ModelDataUrl": model_url,
+    }]
+)
+print(yaml.dump(create_model_response))
+```
+#### Create Endpoint Config
+```python
+##### === Create Endpoint Config ====
+
+endpoint_config_name = "stable-diffusion-2-1-base-g5"
+instance_type = "ml.g5.2xlarge"
+
+endpoint_config_response = sm_client.create_endpoint_config(
+    EndpointConfigName=endpoint_config_name, # You will specify this name in a CreateEndpoint request.
+    # List of ProductionVariant objects, one for each model that you want to host at this endpoint.
+    ProductionVariants=[
+        {
+            "VariantName": "variant1", # The name of the production variant.
+            "ModelName": model_name,
+            "InstanceType": instance_type, # Specify the compute instance type.
+            "InitialInstanceCount": 1 # Number of instances to launch initially.
+        }
+    ]
+)
+print(yaml.dump(endpoint_config_response))
+```
+#### Create Endpoint
+```python
+# ==== Create Endpoint ====
+
+endpoint_name = 'stable-diffusion-2-1-base-g5'
+
+create_endpoint_response = sm_client.create_endpoint(
+        EndpointName=endpoint_name,
+        EndpointConfigName=endpoint_config_name
+)
+print(yaml.dump(create_endpoint_response))
+```
+#### Check Endpoint Status
+```python
+# ==== Check Endpoint Status ====
+desc_endpoint_response = sm_client.describe_endpoint(
+    EndpointName=endpoint_name
+)
+print(f"EndpointStatus: {desc_endpoint_response.get('EndpointStatus', None)}")
+print("==========================================================")
+print(yaml.dump(desc_endpoint_response))
+```
+#### Invoke the Endpoint via Boto3 SageMaker Client
+```python
+content_type = "application/json"
+request_body = {
+    "prompt": "a photo of an astronaut riding a horse on mars"
+}
+import yaml
+import json
+import boto3
+from botocore.config import Config
+# Serialize data for endpoint
+payload = json.dumps(request_body)
+
+config = Config(region_name = 'us-west-2')
+sm_runtime_client = boto3.client("sagemaker-runtime", config=config)
+response = sm_runtime_client.invoke_endpoint(
+    # change to your endpoint name returned in the previous step
+    EndpointName=endpoint_name,
+    ContentType="application/json",
+    Body=payload,
+)
+print(yaml.dump(response['ResponseMetadata']))
+res = response["Body"].read()
+```
+In case of 500 error look at the endpoint log files
+```
+# CloudWatch URL to check endpoint logs
+https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#logEventViewer:group=/aws/sagemaker/Endpoints/stable-diffusion-2-1-base-g5
+```
+
+#### Visualise the Generated Image
+```python
+import matplotlib.pyplot as plt
+import base64
+import numpy as np
+
+for img_encoded in eval(res)["images"]:
+    pred_decoded_byte = base64.decodebytes(
+        bytes(img_encoded, encoding="utf-8")
+    )
+    # update H and W for used model edition (base - 512x512, regular - 768x768)
+    pred_decoded = np.reshape(np.frombuffer(pred_decoded_byte, dtype=np.uint8), (512, 512, 3))
+    plt.imshow(pred_decoded)
+    plt.axis("off")
+    plt.show()
+```
