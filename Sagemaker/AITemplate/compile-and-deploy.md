@@ -71,7 +71,7 @@ Install additional python packages
 pip3 install diffusers transformers accelerate click cuda-python pyclean
 ```
 
-## Compiler Stable Diffusion Model
+## Compile Stable Diffusion Model
 AIT provides [example/05_stable_diffusion](https://github.com/facebookincubator/AITemplate/tree/main/examples/05_stable_diffusion). It includes scripts to download, compile and run the model.
 
 ### Download Stable Diffusion model
