@@ -11,7 +11,7 @@ Sagemaker supports the following instances:
 
 You need to start similar ec2 instance to compile the model. Ubuntu 20.04 OS should work.
 
-## Install requires software
+## Install required software
 
 We need to install the following packages on the ec2 instance
 - [cuda-drivers](https://developer.nvidia.com/cuda-toolkit-archive)
@@ -22,17 +22,17 @@ We need to install the following packages on the ec2 instance
 
 ## Sagemaker Container Images
 
-Sagemaker Endroint runs models inside Sagemaker Deep Learning containers. In order to be compatible with Sagemaker container we are going to compile our models in sagemaker container.
+Sagemaker Endpoint runs models inside Sagemaker Deep Learning containers. In order to be compatible with Sagemaker container we are going to compile our models in sagemaker container.
 
 The list of Available Sagemaker Container Images is here - [aws/deep-learning-containers](https://github.com/aws/deep-learning-containers/blob/master/available_images.md)
 
-Lets pull the following Sagemaker Pytorch 2.0.0 inference image
+Let's pull the following Sagemaker Pytorch 2.0.0 inference image
 ```bash
 $(aws ecr get-login --no-include-email --registry-ids 763104351884 --region us-west-2)
 docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker
 ```
 
-Lets run Sagemaker container in an interactive mode. It will use GPUs and couple shared folders on the host
+Let's run Sagemaker container in an interactive mode. It will use GPUs and couple shared folders on the host
 ```bash
 docker run -ti \
 --name sm_pt200 \
@@ -55,7 +55,7 @@ torch.cuda.is_available()
 ## Install AITemplate
 [AITemplate](https://github.com/facebookincubator/AITemplate) (AIT) is a Python framework that transforms deep neural networks into CUDA (NVIDIA GPU) / HIP (AMD GPU) C++ code for lightning-fast inference serving.
 
-To install AIT run the following inside the contailer:
+To install AIT run the following inside the container:
 ```bash
 cd ~/workspace
 git clone --recursive https://github.com/facebookincubator/AITemplate
@@ -72,7 +72,7 @@ pip3 install diffusers transformers accelerate click cuda-python pyclean
 ```
 
 ## Compiler Stable Diffusion Model
-AIT provides [exaple/05_stable_diffusion](https://github.com/facebookincubator/AITemplate/tree/main/examples/05_stable_diffusion). It includes scripts to download, compile and run the model.
+AIT provides [example/05_stable_diffusion](https://github.com/facebookincubator/AITemplate/tree/main/examples/05_stable_diffusion). It includes scripts to download, compile and run the model.
 
 ### Download Stable Diffusion model
 
@@ -134,7 +134,7 @@ mv tmp/AutoencoderKL/test.so sm_model/compiled/AutoencoderKL/
 mv tmp/CLIPTextModel/test.so sm_model/compiled/CLIPTextModel/
 mv tmp/UNet2DConditionModel/test.so sm_model/compiled/UNet2DConditionModel/
 
-# Copy originad SD model files to sm_model
+# Copy original SD model files to sm_model
 mv tmp/diffusers-pipeline/stabilityai/stable-diffusion-v2/* sm_model/
 ```
 ### Prepare code sub-folder
@@ -159,7 +159,7 @@ wget https://raw.githubusercontent.com/apivovarov/kb/main/Sagemaker/AITemplate/c
 # Edit inference.py file and set correct height and width in process_data() function - 512x512 (for base model) or 768x768 (for regular model)
 ```
 
-Finally, sm_model folder should contain the followong folders/files:
+Finally, sm_model folder should contain the following folders/files:
 ```bash
 tree sm_model
 
@@ -248,7 +248,7 @@ import boto3
 region = "us-west-2"
 sm_client = boto3.client("sagemaker", region_name=region)
 
-# Role to give SageMaker service permission to access your account resources (s3, etc). Change role ARN to correct one.
+# Role to give SageMaker service permission to access your account resources (s3, etc.). Change role ARN to correct one.
 sagemaker_role = "arn:aws:iam::345967381662:role/service-role/AmazonSageMaker-ExecutionRole-20180829T140091"
 ```
 ```python
@@ -259,7 +259,7 @@ import yaml
 #Get model from S3
 model_url = f"s3://sagemaker-us-west-2-345967381662/stable-diffusion/text-to-image/sm_model_g5.tar.gz"
 
-#Get container image (prebuilt example)
+#Get SM container image (prebuilt example)
 container = "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker"
 
 # ==== Create model ====
