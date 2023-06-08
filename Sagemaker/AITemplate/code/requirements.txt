@@ -1,0 +1,4 @@
+/opt/ml/model/code/aitemplate-0.3.dev0-py3-none-any.whl
+accelerate
+diffusers
+transformers
