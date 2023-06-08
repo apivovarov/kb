@@ -359,9 +359,25 @@ for img_encoded in eval(res)["images"]:
     pred_decoded_byte = base64.decodebytes(
         bytes(img_encoded, encoding="utf-8")
     )
-    # update H and W for used model edition (base - 512x512, regular - 768x768)
-    pred_decoded = np.reshape(np.frombuffer(pred_decoded_byte, dtype=np.uint8), (512, 512, 3))
+    # update H for used model edition (base - 512, regular - 768)
+    H = 512
+    pred_decoded = np.reshape(np.frombuffer(pred_decoded_byte, dtype=np.uint8), (H, H, 3))
     plt.imshow(pred_decoded)
     plt.axis("off")
     plt.show()
+```
+
+## Compiled model performance
+The table below shows Models Inference time in seconds to process one prompt and generate one image
+```
+-----------------------------------------------------------
+            base 512x512            regular 768x768
+ HW     Uncompiled   Compiled     Uncompiled   Compiled
+-----------------------------------------------------------
+g4dn                               43.00    16.50 (2.6x)
+g5         3.45     1.85 (1.9x)    19.50     4.80 (4.1x)
+p4d        1.56     0.91 (1.7x)     2.76     2.00 (1.4x)
+-----------------------------------------------------------
+
+* Number in parentheses represents compiled model speedup in comparison to uncomiled model
 ```
