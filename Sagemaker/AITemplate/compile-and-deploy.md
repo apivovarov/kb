@@ -366,6 +366,7 @@ for img_encoded in eval(res)["images"]:
     plt.axis("off")
     plt.show()
 ```
+![astronaut_on_mars_512.png](astronaut_on_mars_512.png)
 
 ## Compiled model performance
 The table below shows Models Inference time in seconds to process one prompt and generate one image
