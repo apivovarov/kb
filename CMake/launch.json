@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(cmake) cmain",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetDirectory}/cmain",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "lldb",
+            "miDebuggerPath": "/usr/local/bin/lldb-mi",
+        },
+        {
+            "name": "cmake c2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetDirectory}/c2",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "lldb",
+            "miDebuggerPath": "/usr/local/bin/lldb-mi"
+        }
+    ]
+}

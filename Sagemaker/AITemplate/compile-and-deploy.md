@@ -378,7 +378,7 @@ The table below shows Models Inference time in seconds to process one prompt and
             base 512x512            regular 768x768
  HW     Uncompiled   Compiled     Uncompiled   Compiled
 -----------------------------------------------------------
-g4dn       6.91     4.70 (1.5x)    16.82    14.11 (1.2x)
+g4dn       6.61     4.70 (1.5x)    16.82    14.11 (1.2x)
 g5         2.74     1.86 (1.5x)     6.12     4.86 (1.3x)
 p4d        1.56     0.91 (1.7x)     2.76     2.00 (1.4x)
 -----------------------------------------------------------
