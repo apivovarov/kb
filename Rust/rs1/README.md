@@ -19,13 +19,17 @@ cargo run
 
 ## VSCode
 
-Open the project folder is VSCode
+Open the project folder in VSCode
 
 Select the "Run and Debug" icon in the Activity Bar on the side of VS Code.
 
 Click on blue link - create launch.json file
 
+![launch-1.png](launch-1.png)
+
 Command Palette should show LLDB - select it
+
+![launch-2.png](launch-2.png)
 
 The following dialog window will appear
 ```
@@ -35,7 +39,9 @@ Would you like to generate launch configurations for its targets?
 ```
 Select Yes
 
-This should generate [.vscode/launsh.json](.vscode/launsh.json) file with two configurations:
+![launch-3.png](launch-3.png)
+
+This should generate [.vscode/launch.json](.vscode/launch.json) file with two configurations:
 - Debug executable 'rs1'
 - Debug unit tests in executable 'rs1'
 
