@@ -28,6 +28,7 @@ cmake --build build --target clean
 
 ## VSCode CMake tools workflow
 
+### Configure and Build
 Required VSCode Extensions:
 - CMake
 - CMake Tools
@@ -38,6 +39,21 @@ To run cmake commands in VSCode hit F1 (to Show Command Palette) and type
 - CMake: Configure
 - CMake: Build
 - CMake: Clean
-- CMake: Debug
+- CMake: Debug (Better to use Run and Debug and select particular launch Configuration. See below)
 
 ![cmake-f1.png](cmake-f1.png)
+
+### Run And Debug
+
+Select the "Run and Debug" icon in the Activity Bar on the side of VS Code.
+
+On top of the Debug Console it will be Drop Down list with the predefined configurations from [.vscode/launch.json](.vscode/launch.json):
+
+- c2
+- cmain
+
+Select one of the configurations and hit ▶.
+
+![run-and-debug.png](run-and-debug.png)
+
+Enjoy Debugging!
