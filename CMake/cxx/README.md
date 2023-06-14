@@ -1,12 +1,11 @@
 # Example of VSCode C++ CMake project
 
-VSCode Extensions:
-- CMake
-- CMake Tools
+## Intro
+This CMake project defines two executable targets - c2 and cmain.
 
-Launch configs use lldb-mi in launch mode. It requires [lldb-mi](https://github.com/lldb-tools/lldb-mi) to be installed.
+## CMake cli workflow
 
-## Configure
+### Configure
 ```
 cmake --no-warn-unused-cli \
  -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE \
@@ -17,17 +16,24 @@ cmake --no-warn-unused-cli \
  -G Ninja
 ```
 
-## Build (debug mode)
+### Build (debug mode)
 ```
 cmake --build build --config Debug --target all
 ```
 
-## Clean
+### Clean
 ```
 cmake --build build --target clean
 ```
 
-## VSCode CMake tools
+## VSCode CMake tools workflow
+
+Required VSCode Extensions:
+- CMake
+- CMake Tools
+
+VSCode launching configs are listed in [.vscode/launch.json](.vscode/launch.json). They use [lldb-mi](https://github.com/lldb-tools/lldb-mi) which should be installed.
+
 To run cmake commands in VSCode hit F1 (to Show Command Palette) and type 
 - CMake: Configure
 - CMake: Build
