@@ -34,8 +34,10 @@ Required VSCode Extensions:
 
 VSCode launching configs are listed in [.vscode/launch.json](.vscode/launch.json). They use [lldb-mi](https://github.com/lldb-tools/lldb-mi) which should be installed.
 
-To run cmake commands in VSCode hit F1 (to Show Command Palette) and type 
+To run cmake commands in VSCode hit F1 (to Show Command Palette) and type
 - CMake: Configure
 - CMake: Build
 - CMake: Clean
 - CMake: Debug
+
+![cmake-f1.png](cmake-f1.png)
