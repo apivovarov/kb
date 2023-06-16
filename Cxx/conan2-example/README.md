@@ -5,6 +5,8 @@ The project uses [Conan 2](https://github.com/conan-io) pacage manager. Boost li
 
 [Conan 2.0 - C and C++ Package Manager Documentation](https://docs.conan.io/2/)
 
+Create default and debug profiles as described it two first steps of Conan2 [tutorial](https://docs.conan.io/2/tutorial.html)
+
 ## CMake
 
 To build and run
