@@ -1,0 +1,9 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "/Users/pivovaa/workspace/kb/Cxx/conan2-example/build/CMakePresets.json"
+    ]
+}
