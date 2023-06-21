@@ -8,8 +8,11 @@ from pipeline_stable_diffusion_ait import StableDiffusionAITPipeline
 
 def process_data(data: dict) -> dict:
     assert "prompt" in data, 'Key "prompt" not found in the input json'
+    prompt_arr = data["prompt"]
+    if not isinstance(prompt_arr, list):
+        prompt_arr = [prompt_arr]
     return {
-        "prompt": [data["prompt"]],
+        "prompt": prompt_arr,
         "guidance_scale": data.get("guidance_scale", 7.5),
         "num_inference_steps": min(data.get("num_inference_steps", 50), 50),
         "height": 512,

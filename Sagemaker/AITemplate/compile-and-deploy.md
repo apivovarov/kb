@@ -9,16 +9,19 @@ Sagemaker supports the following instances:
 - ml.g5  - A10G
 - ml.p4d - A100 (limited availability)
 
-You need to start similar ec2 instance to compile the model. Ubuntu 20.04 OS should work.
+You need to start similar ec2 instance to compile the model. Ubuntu 20.04+ OS should work.
 
 ## Install required software
 
 We need to install the following packages on the ec2 instance
-- [cuda-drivers](https://developer.nvidia.com/cuda-toolkit-archive)
+- [nvidia-driver](https://developer.nvidia.com/cuda-toolkit-archive)
 - [cuda](https://developer.nvidia.com/cuda-toolkit-archive)
 - [cuda-drivers-fabricmanager](https://docs.nvidia.com/datacenter/tesla/pdf/fabric-manager-user-guide.pdf)
 - [docker](https://docs.docker.com/engine/install/ubuntu/)
 - [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+
+We can also use Deep Learning AMI which has the software above pre-installed. For example, Deep Learning AMI GPU PyTorch 2.0.1 (Ubuntu 20.04) 20230613 (`ami-0f9cdc510d79ae56b`)
+
 
 ## Sagemaker Container Images
 
@@ -26,23 +29,26 @@ Sagemaker Endpoint runs models inside Sagemaker Deep Learning containers. In ord
 
 The list of Available Sagemaker Container Images is here - [aws/deep-learning-containers](https://github.com/aws/deep-learning-containers/blob/master/available_images.md)
 
-Let's pull the following Sagemaker Pytorch 2.0.0 inference image
+Let's pull the following Sagemaker Pytorch 2.0.1 inference image
 ```bash
+# run aws configure if needed
+aws configure
+
 $(aws ecr get-login --no-include-email --registry-ids 763104351884 --region us-west-2)
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker
 ```
 
 Let's run Sagemaker container in an interactive mode. It will use GPUs and couple shared folders on the host
 ```bash
 docker run -ti \
---name sm_pt200 \
+--name sm_pt201 \
 --runtime=nvidia --gpus 1 \
 -v ~/workspace:/root/workspace \
 -v ~/.cache/huggingface:/root/.cache/huggingface \
-763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker /bin/bash
+763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker /bin/bash
 ```
 
-Test that the container sees GPU and Cuda is available
+Test that the container sees GPU and CUDA is available
 ```bash
 nvidia-smi
 ```
@@ -60,8 +66,7 @@ To install AIT run the following inside the container:
 cd ~/workspace
 git clone --recursive https://github.com/facebookincubator/AITemplate
 
-cd AITemplate
-cd python
+cd AITemplate/python
 python3 setup.py bdist_wheel
 pip3 install dist/*.whl --force-reinstall
 ```
@@ -83,14 +88,9 @@ cd ~/workspace/AITemplate/examples/05_stable_diffusion
 # - base edition - "stabilityai/stable-diffusion-2-1-base" 512x512
 # - regular edition - "stabilityai/stable-diffusion-2-1" 768x768
 
-# Edit scripts/download_pipeline.py and
-# 1. change model name to
-# - "stabilityai/stable-diffusion-2-1-base" or to
-# - "stabilityai/stable-diffusion-2-1"
-# 2. comment out "use_auth_token=token ..." line
-
-# Download SD model files to workdir tmp
-python3 scripts/download_pipeline.py
+# Download SD 2.1 base model files to workdir tmp
+python3 scripts/download_pipeline.py \
+--model-name stabilityai/stable-diffusion-2-1-base
 ```
 
 ### Compile Stable Diffusion model
@@ -100,7 +100,7 @@ python3 scripts/download_pipeline.py
 H=512 # for stabilityai/stable-diffusion-2-1-base model
 H=768 # for stabilityai/stable-diffusion-2-1 model
 
-python3 scripts/compile.py --height $H --width $H
+python3 scripts/compile.py --height $H --width $H --batch-size 1
 
 # Compilation should take 5-10 min. It will generate the following .so files
 # - tmp/UNet2DConditionModel/test.so
@@ -108,15 +108,17 @@ python3 scripts/compile.py --height $H --width $H
 # - tmp/CLIPTextModel/test.so
 ```
 
+*Variable batch size support (e.g. `--batch-size 1 8`) is implemented in the following repo/branch - https://github.com/apivovarov/AITemplate/tree/add_batch_to_sd
+
 ### Run model locally
 
 To run the model locally use demo.py script. Example:
 ```bash
 python3 scripts/demo.py \
---height $H --width $H \
+--height $H --width $H --batch 1 \
 --prompt "a photo of an astronaut riding a horse on mars"
 ```
-It will generate example_ait.png file.
+It will generate `example_ait_[0..n].png` files.
 
 
 ## Prepare Sagemaker Model
@@ -204,16 +206,18 @@ docker run --rm \
 --runtime=nvidia --gpus 1 \
 -p 8080:8080 \
 -v ~/workspace/AITemplate/examples/05_stable_diffusion/sm_model:/opt/ml/model \
-763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker serve
+763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker serve
 ```
 Check if the system out shows any exceptions / stack traces
 
 Prepare test_request.json file
 ```json
 {
-    "prompt": "a photo of an astronaut riding a horse on mars"
+    "prompt": ["a photo of an astronaut riding a horse on mars"],
 }
 ```
+You can use prompt array with multiple prompts if the model was compiled with batch size greater than one (or variable batch size).
+
 Send test request to the endpoint.
 
 Open another terminal and run the following
@@ -223,7 +227,7 @@ curl -s -d "@test_request.json" -H 'Content-Type: application/json' \
 ```
 `output.json` should contain json where images are encoded in base64, example:
 ```json
-{"images": ["oW5K...AAAA"]}
+{"images": ["oW5K...AAAA","je2A...BBBB"]}
 ```
 Stop the container
 
@@ -260,7 +264,7 @@ import yaml
 model_url = f"s3://sagemaker-us-west-2-345967381662/stable-diffusion/text-to-image/sm_model_g5.tar.gz"
 
 #Get SM container image (prebuilt example)
-container = "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.0-gpu-py310-cu118-ubuntu20.04-sagemaker"
+container = "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker"
 
 # ==== Create model ====
 model_name = "stable-diffusion-2-1-base-g5"
@@ -323,7 +327,7 @@ print(yaml.dump(desc_endpoint_response))
 ```python
 content_type = "application/json"
 request_body = {
-    "prompt": "a photo of an astronaut riding a horse on mars"
+    "prompt": ["a photo of an astronaut riding a horse on mars"],
 }
 import yaml
 import json
@@ -349,7 +353,7 @@ In case of 500 error look at the endpoint log files
 https://us-west-2.console.aws.amazon.com/cloudwatch/home?region=us-west-2#logEventViewer:group=/aws/sagemaker/Endpoints/stable-diffusion-2-1-base-g5
 ```
 
-#### Visualise the Generated Image
+#### Visualize the Generated Image
 ```python
 import matplotlib.pyplot as plt
 import base64
@@ -383,7 +387,7 @@ g5         2.74     1.86 (1.5x)     6.12     4.86 (1.3x)
 p4d        1.56     0.91 (1.7x)     2.76     2.00 (1.4x)
 -----------------------------------------------------------
 
-* Number in parentheses represents compiled model speedup in comparison to uncomiled model
+* Number in parentheses represents compiled model speedup in comparison to uncompiled one
 * Uncompiled model params - revision="fp16", torch_dtype=torch.float16
 * Compiled model params - use-fp16-acc=True
 ```
