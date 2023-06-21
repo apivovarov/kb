@@ -22,7 +22,6 @@ We need to install the following packages on the ec2 instance
 
 We can also use Deep Learning AMI which has the software above pre-installed. For example, Deep Learning AMI GPU PyTorch 2.0.1 (Ubuntu 20.04) 20230613 (`ami-0f9cdc510d79ae56b`)
 
-
 ## Sagemaker Container Images
 
 Sagemaker Endpoint runs models inside Sagemaker Deep Learning containers. In order to be compatible with Sagemaker container we are going to compile our models in sagemaker container.
@@ -31,15 +30,20 @@ The list of Available Sagemaker Container Images is here - [aws/deep-learning-co
 
 Let's pull the following Sagemaker Pytorch 2.0.1 inference image
 ```bash
-# run aws configure if needed
+# install required python packages
+sudo pip3 install awscli boto3 pyclean
+# run aws configure
 aws configure
 
+# Pull Sagemaker Container Image
 $(aws ecr get-login --no-include-email --registry-ids 763104351884 --region us-west-2)
 docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker
 ```
 
 Let's run Sagemaker container in an interactive mode. It will use GPUs and couple shared folders on the host
 ```bash
+mkdir -p ~/workspace ~/.cache/huggingface
+
 docker run -ti \
 --name sm_pt201 \
 --runtime=nvidia --gpus 1 \
@@ -213,7 +217,7 @@ Check if the system out shows any exceptions / stack traces
 Prepare test_request.json file
 ```json
 {
-    "prompt": ["a photo of an astronaut riding a horse on mars"],
+    "prompt": ["a photo of an astronaut riding a horse on mars"]
 }
 ```
 You can use prompt array with multiple prompts if the model was compiled with batch size greater than one (or variable batch size).
@@ -232,22 +236,28 @@ curl -s -d "@test_request.json" -H 'Content-Type: application/json' \
 Stop the container
 
 ## Deploy the model to Sagemaker
+
 Create model tar.gz and upload it to s3
 ```bash
-cd sm_model
+cd ~/workspace/AITemplate/examples/05_stable_diffusion/sm_model
 # remove python temp files
 sudo pyclean .
 # create model archive
-tar vzcf ../sm_model_g5.tar.gz *
+sudo tar vzcf ../sm_model_g5.tar.gz *
 cd ..
 ```
 Copy model archive to s3
 ```bash
 aws s3 cp sm_model_g5.tar.gz s3://sagemaker-us-west-2-345967381662/stable-diffusion/text-to-image/
 ```
+
+We can use python code snippets below or Jupiter Notebook [create-and-invoke-sm-endpoint.ipynb](create-and-invoke-sm-endpoint.ipynb) to Deploy the model to Sagemaker and Invoke the Endpoint.
+
 ### Create Model
+
 ```python
 import boto3
+import yaml
 # Prepare boto3 Sagemaker client
 region = "us-west-2"
 sm_client = boto3.client("sagemaker", region_name=region)
@@ -259,7 +269,6 @@ sagemaker_role = "arn:aws:iam::345967381662:role/service-role/AmazonSageMaker-Ex
 ### Create Sagemaker endpoint and deploy the model
 # https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html
 
-import yaml
 #Get model from S3
 model_url = f"s3://sagemaker-us-west-2-345967381662/stable-diffusion/text-to-image/sm_model_g5.tar.gz"
 
@@ -325,14 +334,18 @@ print(yaml.dump(desc_endpoint_response))
 ```
 #### Invoke the Endpoint via Boto3 SageMaker Client
 ```python
-content_type = "application/json"
-request_body = {
-    "prompt": ["a photo of an astronaut riding a horse on mars"],
-}
-import yaml
-import json
 import boto3
 from botocore.config import Config
+import json
+import yaml
+
+content_type = "application/json"
+# You can use multiple prompts in prompt array
+# if the model was compiled with batch size greater than one (or with variable batch size)
+request_body = {
+    "prompt": ["a photo of an astronaut riding a horse on mars"]
+}
+
 # Serialize data for endpoint
 payload = json.dumps(request_body)
 
