@@ -1,0 +1,34 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 15,
+        "patch": 0
+    },
+    "configurePresets": [
+      {
+        "name": "vcpkg-debug",
+        "displayName": "'vcpkg-debug' config",
+        "description": "'vcpkg-debug' configure using 'Ninja' generator",
+        "generator": "Ninja",
+        "cacheVariables": {
+            "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
+            "CMAKE_BUILD_TYPE": "Debug"
+        },
+        "toolchainFile": "/Users/pivovaa/workspace/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "binaryDir": "${workspaceFolder}/build"
+      }
+    ],
+    "buildPresets": [
+        {
+            "name": "vcpkg-debug",
+            "configurePreset": "vcpkg-debug"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "vcpkg-debug",
+            "configurePreset": "vcpkg-debug"
+        }
+    ]
+  }
