@@ -9,13 +9,13 @@
       {
         "name": "vcpkg-debug",
         "displayName": "'vcpkg-debug' config",
-        "description": "'vcpkg-debug' configure using 'Ninja' generator",
-        "generator": "Ninja",
+        "description": "'vcpkg-debug' configure using 'Unix Makefiles' generator",
+        "generator": "Unix Makefiles",
         "cacheVariables": {
             "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
             "CMAKE_BUILD_TYPE": "Debug"
         },
-        "toolchainFile": "/Users/pivovaa/workspace/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "toolchainFile": "$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake",
         "binaryDir": "${workspaceFolder}/build"
       }
     ],

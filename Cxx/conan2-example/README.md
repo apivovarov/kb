@@ -1,7 +1,7 @@
 # Example of C++ project with Conan2 package manager
 
 ## Conan 2
-The project uses [Conan 2](https://github.com/conan-io) pacage manager. Boost library 1.80.0 (header only) will be downloaded automatically.
+The project uses [Conan 2](https://github.com/conan-io) package manager. Boost library 1.80.0 (header only) will be downloaded automatically.
 
 [Conan 2.0 - C and C++ Package Manager Documentation](https://docs.conan.io/2/)
 
@@ -10,7 +10,7 @@ Create default and debug profiles as described it two first steps of Conan2 [tut
 ## CMake
 
 To build and run
-```
+```bash
 # Run the following commands in the project root
 
 # Download required packages and prepare build folder with CMake toolchain
@@ -26,7 +26,7 @@ cmake .. \
 # Build
 cmake --build .
 # or
-make -j1 -VERBOSE=1
+make VERBOSE=1
 
 # Run
 ./c2
@@ -35,6 +35,6 @@ make -j1 -VERBOSE=1
 
 ## VSCode
 
-VSCode and cmake-tools extension should understand generated CMake files
+To integrate VSCode and cmake-tools extension with conan2 toolchain file conan2 automatically creates [CMakePresets.json](CMakePresets.json) file which points to `build/CMakePresets.json` file.
 
-[.vscode/launch.json](.vscode/launch.json) file is added to the project too. It should allow to run/debug c2 programm.
+[.vscode/launch.json](.vscode/launch.json) file is added to the project too. It should allow to run/debug c2 program.
