@@ -1,7 +1,7 @@
 # cmake -B build -G Ninja \
 # -DCMAKE_TOOLCHAIN_FILE=/Users/pivovaa/workspace/vcpkg/scripts/buildsystems/vcpkg.cmake
-cmake_minimum_required(VERSION 3.0.0)
-project(c1 VERSION 0.1.0 LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.25.1)
+project(vcpkg-example VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 

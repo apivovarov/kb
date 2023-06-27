@@ -29,7 +29,7 @@ cmake --build .
 make VERBOSE=1
 
 # Run
-./c2
+./cmain
 ```
 
 
@@ -37,4 +37,4 @@ make VERBOSE=1
 
 To integrate VSCode and cmake-tools extension with conan2 toolchain file conan2 automatically creates [CMakePresets.json](CMakePresets.json) file which points to `build/CMakePresets.json` file.
 
-[.vscode/launch.json](.vscode/launch.json) file is added to the project too. It should allow to run/debug c2 program.
+[.vscode/launch.json](.vscode/launch.json) file is added to the project too. It should allow to run/debug cmain program.
