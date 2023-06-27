@@ -404,3 +404,7 @@ p4d        1.56     0.91 (1.7x)     2.76     2.00 (1.4x)
 * Uncompiled model params - revision="fp16", torch_dtype=torch.float16
 * Compiled model params - use-fp16-acc=True
 ```
+
+## Links
+- [AITemplate](https://github.com/facebookincubator/AITemplate)
+- [Create Sagemaker endpoint and deploy the model](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-deployment.html)
