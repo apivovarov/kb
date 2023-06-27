@@ -8,11 +8,12 @@ set(CMAKE_CXX_STANDARD 20)
 # include(CTest)
 # enable_testing()
 
+find_package(Boost REQUIRED COMPONENTS regex)
 find_package(spdlog CONFIG REQUIRED)
 
 add_executable(cmain src/main.cpp)
 
-target_link_libraries(cmain PRIVATE spdlog::spdlog)
+target_link_libraries(cmain PRIVATE Boost::regex spdlog::spdlog)
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
