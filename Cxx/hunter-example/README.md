@@ -1,4 +1,4 @@
-# Example of C++ project with Hunter package manager 
+# Example of C++ project with Hunter package manager
 
 ## CMake
 
@@ -13,9 +13,15 @@ cmake -B build
 cmake --build build
 
 # Run
-./build/c2
+./build/cmain
 ```
 
 
 ## Hunter package manager
-The project uses [Hunter package manager](https://github.com/cpp-pm/hunter). Boost library 1.80.0 will be downloaded and built automatically.
+The project uses [Hunter package manager](https://github.com/cpp-pm/hunter). Boost-1.80.0 and spdlog will be downloaded and built automatically.
+
+## VSCode
+
+VSCode and cmake-tools extension should understand generated CMake files automatically. No additional files needed.
+
+[.vscode/launch.json](.vscode/launch.json) file is added to the project too. It should allow to run/debug cmain program.
