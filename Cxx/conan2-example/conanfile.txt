@@ -1,5 +1,6 @@
 [requires]
 boost/1.80.0
+fmt/9.1.0
 spdlog/1.11.0
 
 [options]
