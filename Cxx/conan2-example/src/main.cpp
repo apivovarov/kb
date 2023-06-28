@@ -13,7 +13,7 @@ void test_fmt() {
       std::back_inserter(buf),
       "{}\nThe previous line and this message were bufferred in memory",
       as_string);
-  fmt::print(stderr, "{}\nAnd then were printed to stderr\n", buf.data());
+  fmt::print(stderr, "{}\nAnd then were printed to stderr\n", fmt::to_string(buf));
   fmt::print("Fmt supports many nice features, see {url} for details\n",
              fmt::arg("url", "https://github.com/fmtlib/fmt"));
 }
