@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "string": "cpp",
+        "iosfwd": "cpp",
+        "ios": "cpp",
+        "fstream": "cpp",
+        "sstream": "cpp"
+    },
+    "cSpell.words": [
+        "glfw",
+        "Framebuffer",
+        "GLADloadproc",
+        "GLFWwindow"
+    ]
+}
