@@ -45,24 +45,8 @@ static const struct {
     {   0.f,  0.6f, 0.f, 0.f, 1.f }
 };
 
-static const char* vertex_shader_text =
-"#version 110\n"
-"attribute vec3 vCol;\n"
-"attribute vec2 vPos;\n"
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = vec4(vPos, 0.0, 1.0);\n"
-"    color = vCol;\n"
-"}\n";
-
-static const char* fragment_shader_text =
-"#version 110\n"
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_FragColor = vec4(color, 1.0);\n"
-"}\n";
+#include "glmain.vert"
+#include "glmain.frag"
 
 int main(int, char **) {
   glfwSetErrorCallback(error_callback);
