@@ -1,0 +1,30 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 1
+    },
+    "configurePresets": [
+      {
+        "name": "opengl-debug",
+        "displayName": "'opengl-debug' config",
+        "description": "'opengl-debug' configure using 'Unix Makefiles' generator",
+        "generator": "Unix Makefiles",
+        "toolchainFile": "$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake",
+        "binaryDir": "${workspaceFolder}/build"
+      }
+    ],
+    "buildPresets": [
+        {
+            "name": "opengl-debug",
+            "configurePreset": "opengl-debug"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "opengl-debug",
+            "configurePreset": "opengl-debug"
+        }
+    ]
+  }
