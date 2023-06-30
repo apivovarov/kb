@@ -1,5 +1,5 @@
-static const std::string vertex_shader_text = R"(
-// START VERTEX
+R"(
+// BEGIN
 #version 110
 attribute vec3 vCol;
 attribute vec2 vPos;
@@ -9,4 +9,4 @@ void main() {
     color = vCol;
 }
 // END
-)";
+)"

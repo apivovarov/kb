@@ -1,9 +1,20 @@
 #include <fmt/format.h>
 #include <memory>
 
-#include <glad/glad.h>
+// glad/gl.h should be included before GLFW/glfw3.h
+#include <glad/gl.h>
+// GLFW_INCLUDE_NONE prevents the GLFW header from including the OpenGL header
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+
+
+static const std::string vertex_shader_text {
+#include "glmain.vert"
+};
+
+static const std::string fragment_shader_text {
+#include "glmain.frag"
+};
 
 // #include "linmath.h"
 
@@ -46,9 +57,6 @@ static const struct {
                  {0.6f, -0.4f, 0.f, 1.f, 0.f},
                  {0.f, 0.6f, 0.f, 0.f, 1.f}};
 
-#include "glmain.frag"
-#include "glmain.vert"
-
 int main(int, char **) {
   glfwSetErrorCallback(error_callback);
 
@@ -58,9 +66,7 @@ int main(int, char **) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-  // window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
-
-  std::shared_ptr<GLFWwindow> window(
+   std::shared_ptr<GLFWwindow> window(
       glfwCreateWindow(640, 480, "Simple example", NULL, NULL),
       // Deleter
       [](GLFWwindow *w) {
@@ -77,8 +83,7 @@ int main(int, char **) {
   glfwSetKeyCallback(window.get(), key_callback);
 
   glfwMakeContextCurrent(window.get());
-  // glfwGetProcAddress();
-  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+  gladLoadGL((GLADloadfunc)glfwGetProcAddress);
   glfwSwapInterval(1);
 
   // NOTE: OpenGL error checks have been omitted for brevity
