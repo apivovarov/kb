@@ -57,6 +57,18 @@ static const struct {
                  {0.6f, -0.4f, 0.f, 1.f, 0.f},
                  {0.f, 0.6f, 0.f, 0.f, 1.f}};
 
+struct WindowDeleter { // deleter
+    void operator()(GLFWwindow* w) const {
+        if (!w) return;
+        fmt::println("glfw Destroying Window");
+        glfwDestroyWindow(w);
+        glfwTerminate();
+        fmt::println("glfw terminated");
+    };
+};
+
+
+
 int main(int, char **) {
   glfwSetErrorCallback(error_callback);
 
@@ -66,19 +78,17 @@ int main(int, char **) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-   std::shared_ptr<GLFWwindow> window(
+  std::unique_ptr<GLFWwindow, WindowDeleter> window(
       glfwCreateWindow(640, 480, "Simple example", NULL, NULL),
-      // Deleter
-      [](GLFWwindow *w) {
-        glfwDestroyWindow(w);
-        glfwTerminate();
-        fmt::println("glfw terminated");
-      });
+      WindowDeleter()
+  );
 
-  if (!window) {
+  if (!window.get()) {
+    fmt::println("glfwCreateWindow returned nullptr. Exit.");
     glfwTerminate();
     exit(EXIT_FAILURE);
   }
+  fmt::println("glfwCreateWindow OK");
 
   glfwSetKeyCallback(window.get(), key_callback);
 
