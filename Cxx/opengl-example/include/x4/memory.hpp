@@ -2,10 +2,10 @@
 #define X4_MEMORY_H_
 
 #ifdef NDEBUG
-#define LOG_DEBUG(s) ((void)0)
+#define X4_MEM_LOG_DEBUG(s) ((void)0)
 #else
 #include <iostream>
-#define LOG_DEBUG(s) std::cout << s << '\n'
+#define X4_MEM_LOG_DEBUG(s) std::cout << s << '\n'
 #endif
 
 namespace x4 {
@@ -20,13 +20,13 @@ class shared_ptr {
   shared_ptr() {
     ptr = nullptr;
     cnt = nullptr;
-    LOG_DEBUG("default Ctor");
+    X4_MEM_LOG_DEBUG("default Ctor");
   }
 
   shared_ptr(T* ptr) {
     this->ptr = ptr;
     cnt = new int(1);
-    LOG_DEBUG("Ctor with pointer");
+    X4_MEM_LOG_DEBUG("Ctor with pointer");
   }
 
   ~shared_ptr() {
@@ -38,18 +38,18 @@ class shared_ptr {
         if (cnt) {
           delete cnt;
         }
-        LOG_DEBUG("Dtor deletes ptr");
+        X4_MEM_LOG_DEBUG("Dtor deletes ptr");
       } else {
         *cnt -= 1;
-        LOG_DEBUG("Dtor cnt minus");
+        X4_MEM_LOG_DEBUG("Dtor cnt minus");
       }
     } else {
-      LOG_DEBUG("Dtor no pointer");
+      X4_MEM_LOG_DEBUG("Dtor no pointer");
     }
   }
 
   shared_ptr(const shared_ptr& other) {
-    LOG_DEBUG("copy Ctor");
+    X4_MEM_LOG_DEBUG("copy Ctor");
     cnt = other.cnt;
     ptr = other.ptr;
     if (cnt) {
@@ -58,7 +58,7 @@ class shared_ptr {
   }
 
   shared_ptr(shared_ptr&& other) {
-    LOG_DEBUG("move Ctor");
+    X4_MEM_LOG_DEBUG("move Ctor");
     cnt = other.cnt;
     ptr = other.ptr;
     other.cnt = nullptr;
@@ -67,7 +67,7 @@ class shared_ptr {
   // LLVM, GNU, Google, Chromium, Microsoft, Mozilla, WebKit.
 
   shared_ptr& operator=(const shared_ptr& other) {
-    LOG_DEBUG("copy assign");
+    X4_MEM_LOG_DEBUG("copy assign");
     cnt = other.cnt;
     ptr = other.ptr;
     if (cnt) {
@@ -77,7 +77,7 @@ class shared_ptr {
   }
 
   shared_ptr& operator=(shared_ptr&& other) {
-    LOG_DEBUG("move assign");
+    X4_MEM_LOG_DEBUG("move assign");
     cnt = other.cnt;
     ptr = other.ptr;
     other.cnt = nullptr;
@@ -94,10 +94,10 @@ class shared_ptr {
         if (cnt) {
           delete cnt;
         }
-        LOG_DEBUG("reset deletes ptr");
+        X4_MEM_LOG_DEBUG("reset deletes ptr");
       } else {
         --(*cnt);
-        LOG_DEBUG("reset cnt minus");
+        X4_MEM_LOG_DEBUG("reset cnt minus");
       }
     }
     this->ptr = ptr;
