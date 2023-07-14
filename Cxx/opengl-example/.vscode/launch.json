@@ -7,10 +7,18 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug cmain",
-            "program": "${command:cmake.launchTargetDirectory}/cmain",
+            "name": "Debug glmain",
+            "program": "${command:cmake.buildDirectory}/glmain",
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug test",
+            "program": "${command:cmake.buildDirectory}/test",
+            "args": ["1","4"],
+            "cwd": "${workspaceFolder}",
         }
     ]
 }

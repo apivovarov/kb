@@ -68,7 +68,6 @@ struct WindowDeleter { // deleter
 };
 
 
-
 int main(int, char **) {
   glfwSetErrorCallback(error_callback);
 
