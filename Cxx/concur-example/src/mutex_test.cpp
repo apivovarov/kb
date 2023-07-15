@@ -6,9 +6,9 @@
 
 #include "x4/thread.hpp"
 
-x4::mutex m;
+static x4::mutex m;
 
-int a = 0;
+static int a = 0;
 
 void f() {
   //   while (!m.try_lock()) {
