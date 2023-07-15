@@ -4,6 +4,12 @@
 
 #include "x4/memory.hpp"
 
+void print(int aa) {
+  int a = aa + 2;
+  int b = 1 + a;
+  fmt::println("aa: {}, a: {}, b: {}", fmt::ptr(&aa), fmt::ptr(&a), fmt::ptr(&b));
+}
+
 struct AA {
   int i;
 
@@ -15,6 +21,11 @@ struct AA {
 };
 
 int main() {
+  int cc = 1;
+  int dd = 2;
+  fmt::println("cc: {}, dd: {}", fmt::ptr(&cc), fmt::ptr(&dd));
+  print(cc);
+
   x4::shared_ptr<AA> p2aa = x4::make_shared<AA>(45);
   fmt::println("p2aa getI(): {}", p2aa->getI());
 

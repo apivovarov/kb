@@ -25,8 +25,10 @@ find_package(fmt CONFIG REQUIRED)
 # endif()
 
 add_executable(shpt src/shpt.cpp)
+add_executable(mutex_test src/mutex_test.cpp)
 
 target_link_libraries(shpt PRIVATE fmt::fmt)
+target_link_libraries(mutex_test PRIVATE fmt::fmt)
 
 # set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "shpt",
+            "program": "${command:cmake.buildDirectory}/shpt",
+            //"args": ["1","4"],
+            "cwd": "${workspaceFolder}",
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "mutex_test",
+            "program": "${command:cmake.buildDirectory}/mutex_test",
+            //"args": ["1","4"],
+            "cwd": "${workspaceFolder}",
+        }
+    ]
+}
