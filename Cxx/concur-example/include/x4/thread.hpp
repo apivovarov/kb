@@ -15,7 +15,7 @@
 namespace x4 {
 class mutex {
  private:
-  std::atomic_int c;
+  std::atomic_bool busy_flag;
 
  public:
   constexpr mutex() noexcept {}
@@ -26,31 +26,29 @@ class mutex {
   mutex& operator=(mutex&& other) = delete;
 
   bool try_lock() {
-    if (c != 0) {
+    if (busy_flag) {
       X4_THREAD_LOG_DEBUG("Lock is busy", "");
       return false;
     }
-    int c_prev = c.fetch_add(1);
-    assert(c_prev >= 0);
-    if (c_prev == 0) {
+    bool busy_flag_prev = busy_flag.exchange(true);
+    if (!busy_flag_prev) {
       X4_THREAD_LOG_DEBUG("Locked!", "");
       return true;
     }
-    int c_prev_sub = c.fetch_sub(1);
-    assert(c_prev_sub >= 0);
     X4_THREAD_LOG_DEBUG("Failed to lock", "");
     return false;
   }
 
   void lock() {
     while (!try_lock()) {
-      std::this_thread::yield();
+        busy_flag.wait(true);
+        //std::this_thread::yield();
     }
   }
 
   void unlock() {
-    int c_prev = c.fetch_sub(1);
-    assert(c_prev >= 1);
+    busy_flag.store(false);
+    busy_flag.notify_one();
     X4_THREAD_LOG_DEBUG("Unlocked", "");
   }
 };
