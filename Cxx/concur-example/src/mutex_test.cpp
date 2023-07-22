@@ -3,20 +3,29 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+//#include <thread>
 
 #include "x4/thread.hpp"
 
 static x4::mutex m;
+//static std::mutex m_std;
+static const int N = 32000;
+static double times[N];
 
 static int a = 0;
 
-void f() {
+void f(int i) {
   //   while (!m.try_lock()) {
   //     std::this_thread::yield();
   //   }
-  m.lock();
-  a += 1;
-  m.unlock();
+  auto t0 = std::chrono::high_resolution_clock::now();
+  {
+    x4::lock_guard<x4::mutex> guard(m);
+    a += 1;
+  }
+  std::chrono::duration<double> sec(std::chrono::high_resolution_clock::now() -
+                                    t0);
+  times[i] = sec.count();
 }
 
 void test_atomic() {
@@ -35,15 +44,15 @@ void test_atomic() {
 
 int main() {
   auto t0 = std::chrono::high_resolution_clock::now();
-  int N = 32000;
+
   std::vector<std::thread> ths;
   for (int i = 0; i < N; i++) {
-    ths.emplace_back(f);
-    std::this_thread::yield();
+    ths.emplace_back(f, i);
+    //std::this_thread::yield();
   }
   for (auto& th : ths) {
     th.join();
-    std::this_thread::yield();
+    //std::this_thread::yield();
   }
 
   fmt::println("a: {:}", a);
@@ -54,5 +63,11 @@ int main() {
   std::chrono::duration<double> sec(std::chrono::high_resolution_clock::now() -
                                     t0);
   fmt::println("Duration: {} sec", sec.count());
+
+  auto max = *std::max_element(times, times + N);
+  auto min = *std::min_element(times, times + N);
+
+  fmt::println("Min f() time: {}", min);
+  fmt::println("Max f() time: {}", max);
   return 0;
 }

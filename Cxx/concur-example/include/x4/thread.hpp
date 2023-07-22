@@ -16,6 +16,8 @@ namespace x4 {
 class mutex {
  private:
   std::atomic_bool busy_flag;
+  // std::atomic_int next;
+  // std::atomic_int ticket;
 
  public:
   constexpr mutex() noexcept {}
@@ -41,8 +43,8 @@ class mutex {
 
   void lock() {
     while (!try_lock()) {
-        busy_flag.wait(true);
-        //std::this_thread::yield();
+      busy_flag.wait(true);
+      // std::this_thread::yield();
     }
   }
 
@@ -51,6 +53,37 @@ class mutex {
     busy_flag.notify_one();
     X4_THREAD_LOG_DEBUG("Unlocked", "");
   }
+
+  // void lock2() {
+  //   int ticket_ = ticket.fetch_add(1);
+  //   while (true) {
+  //     int next_ = next.load();
+  //     if (next_ == ticket_) {
+  //       break;
+  //     }
+  //     X4_THREAD_LOG_DEBUG("Waiting!", "");
+  //     next.wait(next_);
+  //   }
+  //   X4_THREAD_LOG_DEBUG("Locked!", "");
+  // }
+
+  // void unlock2() {
+  //   next.fetch_add(1);
+  //   next.notify_all();
+  //   X4_THREAD_LOG_DEBUG("Unlocked", "");
+  // }
+};
+
+template <class T>
+class lock_guard {
+ private:
+  T& m;
+  lock_guard(lock_guard const&) = delete;
+  lock_guard& operator=(lock_guard const&) = delete;
+
+ public:
+  lock_guard(T& m_) : m(m_) { m.lock(); }
+  ~lock_guard() { m.unlock(); }
 };
 
 }  // namespace x4
