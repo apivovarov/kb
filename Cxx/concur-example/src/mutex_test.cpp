@@ -3,12 +3,11 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
-//#include <thread>
 
 #include "x4/thread.hpp"
 
 static x4::mutex_futex m;
-//static std::mutex m_std;
+// static std::mutex m_std;
 static const int N = 32000;
 static double times[N];
 
@@ -48,11 +47,11 @@ int main() {
   std::vector<std::thread> ths;
   for (int i = 0; i < N; i++) {
     ths.emplace_back(f, i);
-    //std::this_thread::yield();
+    // std::this_thread::yield();
   }
   for (auto& th : ths) {
     th.join();
-    //std::this_thread::yield();
+    // std::this_thread::yield();
   }
 
   fmt::println("a: {:}", a);

@@ -8,9 +8,10 @@
 
 #include <atomic>
 #include <cassert>
+#include <condition_variable>
 #include <functional>
+#include <queue>
 #include <thread>
-#include <vector>
 
 #ifdef NDEBUG
 #define X4_THREAD_LOG_DEBUG(s, i) ((void)0)
@@ -133,17 +134,74 @@ class lock_guard {
 class ThreadPool {
  public:
   using Task = std::function<void()>;
+  ThreadPool(size_t capacity) : capacity(capacity) {
+    threads.reserve(capacity);
+    for (int i = 0; i < capacity; i++) {
+      threads.emplace_back([this] { this->runner(); });
+    }
+  }
 
-  void submit(Task&& task) { vec.push_back(task); }
+  ~ThreadPool() {
+    X4_THREAD_LOG_DEBUG("[Pool Destructor]", "Stop/Join");
+    stop();
+    join();
+  }
 
-  void run() { vec[i++](); }
+  void submit(Task&& task) {
+    std::lock_guard<std::mutex> lk{m};
+    task_q.push(task);
+    cv.notify_one();
+  }
 
-  void take() {}
+  void join() {
+    for (std::thread& th : threads) {
+      if (th.joinable()) th.join();
+    }
+  }
+
+  void stop() {
+    stop_flag.store(true);
+    cv.notify_all();
+  }
+
+  size_t get_queue_size() const { return task_q.size(); }
+
+  bool is_stopped() const { return stop_flag; }
 
  private:
-  int i = 0;
-  std::vector<Task> vec;
+  size_t capacity;
+  std::queue<Task> task_q;
+  std::mutex m;
+  std::condition_variable cv;
+  std::vector<std::thread> threads;
+  std::atomic_bool stop_flag;
+
+  Task get_next_task() {
+    std::unique_lock<std::mutex> lk{m};
+    while (task_q.empty() && !stop_flag) {
+      X4_THREAD_LOG_DEBUG("Waiting", "");
+      cv.wait(lk);
+      X4_THREAD_LOG_DEBUG("Notified", "");
+    }
+    if (stop_flag) {
+      return []() {};
+    }
+    X4_THREAD_LOG_DEBUG("Reading front", "");
+    auto task = task_q.front();
+    task_q.pop();
+    return task;
+  }
+
+  void runner() {
+    while (true) {
+      if (stop_flag) return;
+      auto task = get_next_task();
+      if (stop_flag) return;
+      task();
+    }
+  }
 };
+
 }  // namespace x4
 
 #endif  // X4_THREAD_H_
