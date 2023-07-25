@@ -21,13 +21,28 @@ int main() {
   std::this_thread::sleep_for(1s);
   fmt::println("[main] woke up");
   fmt::println("[main] Submit");
-  for (int i = 0; i < 32000; i++) {
+  auto t0 = high_resolution_clock::now();
+  int N = 32000;
+  for (int i = 0; i < N; i++) {
     thpool.submit(f2);
     // thpool.submit([]() { fmt::println("F2 test"); });
   }
-  fmt::println("[main] sleep 1ms");
-  std::this_thread::sleep_for(1ms);
-  fmt::println("pool queue size: {}", thpool.get_queue_size());
+  fmt::println("[main] spin lock till empty queue");
+  std::this_thread::yield();
+  while (thpool.get_queue_size() != 0) {
+    std::this_thread::yield();
+  }
+  while (true) {
+    {
+        std::lock_guard<std::mutex> lk(m);
+        if (i == N) {
+            break;
+        }
+    }
+    std::this_thread::yield();
+  }
+  std::chrono::duration<double, std::milli> dur_in_ms{high_resolution_clock::now() - t0};
+  fmt::println("pool queue size: {}, i: {}, duration (ms): {}", thpool.get_queue_size(), i, dur_in_ms.count());
   fmt::println("[main] woke up");
   fmt::println("[main] Stop/Join");
 

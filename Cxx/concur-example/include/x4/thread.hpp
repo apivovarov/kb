@@ -134,6 +134,7 @@ class lock_guard {
 class ThreadPool {
  public:
   using Task = std::function<void()>;
+
   ThreadPool(size_t capacity) : capacity(capacity) {
     threads.reserve(capacity);
     for (int i = 0; i < capacity; i++) {
