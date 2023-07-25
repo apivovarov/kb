@@ -7,7 +7,7 @@
 
 #include "x4/thread.hpp"
 
-static x4::mutex m;
+static x4::mutex_futex m;
 //static std::mutex m_std;
 static const int N = 32000;
 static double times[N];
@@ -20,7 +20,7 @@ void f(int i) {
   //   }
   auto t0 = std::chrono::high_resolution_clock::now();
   {
-    x4::lock_guard<x4::mutex> guard(m);
+    x4::lock_guard<x4::mutex_futex> guard(m);
     a += 1;
   }
   std::chrono::duration<double> sec(std::chrono::high_resolution_clock::now() -
@@ -69,5 +69,6 @@ int main() {
 
   fmt::println("Min f() time: {}", min);
   fmt::println("Max f() time: {}", max);
+
   return 0;
 }
