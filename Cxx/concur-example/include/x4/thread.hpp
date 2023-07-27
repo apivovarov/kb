@@ -138,12 +138,37 @@ template <typename T>
 class BlockingQueue {
  public:
   void push(T&& v)
-    requires std::is_rvalue_reference<T&&>::value;
+    requires std::is_rvalue_reference<T&&>::value
+  {
+    std::lock_guard<std::mutex> lk{m};
+    queue_.push(std::move(v));
+    cv.notify_one();
+  }
+
   void push(T&) = delete;
-  T pop();
-  void stop();
-  size_t size() const;
-  bool is_stopped() const;
+
+  T pop() {
+    std::unique_lock<std::mutex> lk{m};
+    while (queue_.empty() && !stop_flag) {
+      X4_THREAD_LOG_DEBUG("Waiting", "");
+      cv.wait(lk);
+      X4_THREAD_LOG_DEBUG("Notified", "");
+    }
+    if (stop_flag) {
+      return T();
+    }
+    X4_THREAD_LOG_DEBUG("Reading front", "");
+    T task = std::move(queue_.front());
+    queue_.pop();
+    return task;
+  }
+  void stop() {
+    stop_flag.store(true);
+    cv.notify_all();
+  }
+  size_t size() const { return queue_.size(); }
+
+  bool is_stopped() const { return stop_flag; }
 
  private:
   std::queue<T> queue_;
@@ -151,8 +176,6 @@ class BlockingQueue {
   std::condition_variable cv;
   std::atomic_bool stop_flag;
 };
-
-template class BlockingQueue<Task>;
 
 class ThreadPool {
  public:
