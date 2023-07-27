@@ -16,7 +16,7 @@ static void f2() {
 
 int main() {
   using namespace std::chrono;
-  x4::ThreadPool thpool{12};
+  x4::ThreadPool thpool{6};
   fmt::println("[main] pool created. sleep 1s");
   std::this_thread::sleep_for(1s);
   fmt::println("[main] woke up");

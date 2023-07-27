@@ -12,6 +12,7 @@
 #include <functional>
 #include <queue>
 #include <thread>
+#include <type_traits>
 
 #ifdef NDEBUG
 #define X4_THREAD_LOG_DEBUG(s, i) ((void)0)
@@ -131,6 +132,51 @@ class lock_guard {
   ~lock_guard() { m.unlock(); }
 };
 
+template <typename T>
+class BlockingQueue {
+ public:
+  void push(T&& v)
+    requires std::is_rvalue_reference<T&&>::value
+  {
+    std::lock_guard<std::mutex> lk{m};
+    queue_.push(std::move(v));
+    cv.notify_one();
+  }
+
+  void push(T&) = delete;
+
+  T pop() {
+    std::unique_lock<std::mutex> lk{m};
+    while (queue_.empty() && !stop_flag) {
+      X4_THREAD_LOG_DEBUG("Waiting", "");
+      cv.wait(lk);
+      X4_THREAD_LOG_DEBUG("Notified", "");
+    }
+    if (stop_flag) {
+      return T();
+    }
+    X4_THREAD_LOG_DEBUG("Reading front", "");
+    T task = std::move(queue_.front());
+    queue_.pop();
+    return task;
+  }
+
+  void stop() {
+    stop_flag.store(true);
+    cv.notify_all();
+  }
+
+  size_t size() const { return queue_.size(); }
+
+  bool is_stopped() const { return stop_flag; }
+
+ private:
+  std::queue<T> queue_;
+  std::mutex m;
+  std::condition_variable cv;
+  std::atomic_bool stop_flag;
+};
+
 class ThreadPool {
  public:
   using Task = std::function<void()>;
@@ -148,11 +194,7 @@ class ThreadPool {
     join();
   }
 
-  void submit(Task&& task) {
-    std::lock_guard<std::mutex> lk{m};
-    task_q.push(task);
-    cv.notify_one();
-  }
+  void submit(Task&& task) { task_q.push(std::move(task)); }
 
   void join() {
     for (std::thread& th : threads) {
@@ -160,44 +202,23 @@ class ThreadPool {
     }
   }
 
-  void stop() {
-    stop_flag.store(true);
-    cv.notify_all();
-  }
+  void stop() { task_q.stop(); }
 
   size_t get_queue_size() const { return task_q.size(); }
 
-  bool is_stopped() const { return stop_flag; }
+  bool is_stopped() const { return task_q.is_stopped(); }
 
  private:
   size_t capacity;
-  std::queue<Task> task_q;
-  std::mutex m;
-  std::condition_variable cv;
+  BlockingQueue<Task> task_q;
   std::vector<std::thread> threads;
   std::atomic_bool stop_flag;
 
-  Task get_next_task() {
-    std::unique_lock<std::mutex> lk{m};
-    while (task_q.empty() && !stop_flag) {
-      X4_THREAD_LOG_DEBUG("Waiting", "");
-      cv.wait(lk);
-      X4_THREAD_LOG_DEBUG("Notified", "");
-    }
-    if (stop_flag) {
-      return []() {};
-    }
-    X4_THREAD_LOG_DEBUG("Reading front", "");
-    auto task = task_q.front();
-    task_q.pop();
-    return task;
-  }
-
   void runner() {
     while (true) {
-      if (stop_flag) return;
-      auto task = get_next_task();
-      if (stop_flag) return;
+      if (is_stopped()) return;
+      auto task = task_q.pop();
+      if (is_stopped()) return;
       task();
     }
   }
