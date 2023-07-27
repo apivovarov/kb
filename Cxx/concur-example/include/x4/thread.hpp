@@ -132,43 +132,18 @@ class lock_guard {
   ~lock_guard() { m.unlock(); }
 };
 
+using Task = std::function<void()>;
+
 template <typename T>
 class BlockingQueue {
  public:
   void push(T&& v)
-    requires std::is_rvalue_reference<T&&>::value
-  {
-    std::lock_guard<std::mutex> lk{m};
-    queue_.push(std::move(v));
-    cv.notify_one();
-  }
-
+    requires std::is_rvalue_reference<T&&>::value;
   void push(T&) = delete;
-
-  T pop() {
-    std::unique_lock<std::mutex> lk{m};
-    while (queue_.empty() && !stop_flag) {
-      X4_THREAD_LOG_DEBUG("Waiting", "");
-      cv.wait(lk);
-      X4_THREAD_LOG_DEBUG("Notified", "");
-    }
-    if (stop_flag) {
-      return T();
-    }
-    X4_THREAD_LOG_DEBUG("Reading front", "");
-    T task = std::move(queue_.front());
-    queue_.pop();
-    return task;
-  }
-
-  void stop() {
-    stop_flag.store(true);
-    cv.notify_all();
-  }
-
-  size_t size() const { return queue_.size(); }
-
-  bool is_stopped() const { return stop_flag; }
+  T pop();
+  void stop();
+  size_t size() const;
+  bool is_stopped() const;
 
  private:
   std::queue<T> queue_;
@@ -177,10 +152,10 @@ class BlockingQueue {
   std::atomic_bool stop_flag;
 };
 
+template class BlockingQueue<Task>;
+
 class ThreadPool {
  public:
-  using Task = std::function<void()>;
-
   ThreadPool(size_t capacity) : capacity(capacity) {
     threads.reserve(capacity);
     for (int i = 0; i < capacity; i++) {
