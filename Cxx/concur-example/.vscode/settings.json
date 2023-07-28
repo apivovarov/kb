@@ -72,7 +72,10 @@
         "condition_variable": "cpp",
         "deque": "cpp",
         "queue": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "forward_list": "cpp",
+        "__config_site": "cpp",
+        "version": "cpp"
     },
     "cSpell.words": [
 
