@@ -9,5 +9,5 @@ def input_fn(input_data, content_type):
     data = json.loads(input_data)
     np_array = np.array(data, dtype="int64")
     tensor = torch.LongTensor(np_array).cuda()
-    logging.info(f"input tensor dtype: {tensor.dtype=}, shape: {tensor.shape=}")
+    logging.info(f"input {tensor.dtype=}, {tensor.shape=}")
     return tensor
