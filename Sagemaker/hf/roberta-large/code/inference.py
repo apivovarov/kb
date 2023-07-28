@@ -11,3 +11,4 @@ def input_fn(input_data, content_type):
     tensor = torch.LongTensor(np_array).cuda()
     logging.info(f"input {tensor.dtype=}, {tensor.shape=}")
     return tensor
+

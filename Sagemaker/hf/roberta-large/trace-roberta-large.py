@@ -23,7 +23,7 @@ with torch.inference_mode():
   encoded_input = tokenizer(text, return_tensors='pt')
   input_ids = encoded_input['input_ids']
   last_hidden_state, pooler_output = wrap_model(input_ids)
-  
+
 
 with torch.inference_mode():
   traced_model = torch.jit.trace(wrap_model, input_ids)
