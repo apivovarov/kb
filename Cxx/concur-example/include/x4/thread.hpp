@@ -137,15 +137,13 @@ using Task = std::function<void()>;
 template <typename T>
 class BlockingQueue {
  public:
-  void push(T&& v)
-    requires std::is_rvalue_reference<T&&>::value
-  {
+  void push(T&& v) {
     std::lock_guard<std::mutex> lk{m};
     queue_.push(std::move(v));
     cv.notify_one();
   }
 
-  void push(T&) = delete;
+  void push(const T&) = delete;
 
   T pop() {
     std::unique_lock<std::mutex> lk{m};
