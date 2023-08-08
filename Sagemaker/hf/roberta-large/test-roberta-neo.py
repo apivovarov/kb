@@ -1,7 +1,6 @@
+import numpy as np
 import os
 import pickle
-import textwrap
-import logging
 import torch
 import neopytorch
 from sagemaker_inference import content_types, decoder, default_inference_handler, encoder
@@ -27,24 +26,25 @@ model_input = model_input.to(device)
 print(f"{model_input.dtype=}, {model_input.shape=}")
 out = model(model_input)
 
-import time
-import numpy as np
 # Warmup
+N = 100
 with torch.inference_mode():
-    N = 100
     for i in range(N):
       x = torch.randint(low=0,high=500,size=(1,12), dtype=torch.int64).cuda()
       out = model(x)
 # Test
+N = 1000
+TT = []
+start = torch.cuda.Event(enable_timing=True)
+end = torch.cuda.Event(enable_timing=True)
 with torch.inference_mode():
-    N = 1000
-    TT = []
     for i in range(N):
       x = torch.randint(low=0,high=500,size=(1,12), dtype=torch.int64).cuda()
-      t0 = time.time()
+      start.record()
       out = model(x)
-      t1 = time.time()
-      TT.append(t1-t0)
+      end.record()
+      torch.cuda.synchronize()
+      TT.append(start.elapsed_time(end))
 
-avg_time = np.mean(TT) * 1000
+avg_time = np.mean(TT)
 print(f"avg time: {avg_time} ms")
