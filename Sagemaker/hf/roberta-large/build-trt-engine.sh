@@ -5,14 +5,14 @@
 #fasterDynamicShapes0805 slowes down fp16 performance but gives better accuracy
 
 trtexec \
---fp16 \
+--preview="+fasterDynamicShapes0805" \
 --verbose \
 --useCudaGraph \
---onnx=roberta-large.onnx \
---saveEngine=roberta-large-fp16-cudagraph.trt \
---minShapes=input_ids:1x3 \
---optShapes=input_ids:1x12 \
---maxShapes=input_ids:8x256
+--onnx=roberta-large-2.onnx \
+--saveEngine=roberta-large-2-fp32-fds.trt \
+--minShapes=input_ids:1x3,attention_mask:1x3 \
+--optShapes=input_ids:1x12,attention_mask:1x12 \
+--maxShapes=input_ids:8x256,attention_mask:8x256
 
 
 # trtexec \
