@@ -42,7 +42,7 @@ sudo yum install \
 
 ### Downloads Python binaries
 
-FTP to Download Python binaries - [https://www.python.org/ftp/python/](https://www.python.org/ftp/python/)
+Link to Download Python binaries - [https://www.python.org/ftp/python/](https://www.python.org/ftp/python/)
 
 ```bash
 wget https://www.python.org/ftp/python/3.9.18/Python-3.9.18.tgz
@@ -99,3 +99,40 @@ wget https://bootstrap.pypa.io/get-pip.py
 
 sudo python3.9 get-pip.py
 ```
+
+### Install JAX, Flax, Jupyter Notebook (Optional)
+
+#### Install JAX, Flax
+```
+python3.9 -m pip install -U "jax[cpu]" flax
+```
+
+#### Install Jupyter Notebook
+```bash
+python3.9 -m pip install -U jupyter
+```
+
+##### Set jupyter password
+Just hit enter two times for no password.
+```bash
+$HOME/.local/bin/jupyter notebook password
+```
+
+##### Run jupyter
+```bash
+$HOME/.local/bin/jupyter notebook
+```
+
+##### SSH Tunnel
+Start ssh tunnel to access Linux Jupyter Web server from Mac
+```bash
+# Start ssh tunnel to open Jupyter Server URL from Mac (port 8888)
+ssh -NL 8888:localhost:8888 user@linux_host
+```
+
+## Links
+- [Python](https://www.python.org/)
+- [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2)
+- [JAX Installation](https://jax.readthedocs.io/en/latest/installation.html)
+- [Flax Installation](https://flax.readthedocs.io/en/v0.5.3/installation.html)
+- [How to Install Jupyter Notebook](https://noteable.io/jupyter-notebook/install-jupyter-notebook/)
