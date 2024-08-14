@@ -6,6 +6,9 @@ To use a Docker container as a virtual machine (VM) for development, the contain
 
 The instructions below explain how to create a Docker container with correct user_name, user_id and with shared folder
 ```bash
+# Create shared folder, .e.g. workspace. It should be owned by your user.
+mkdir ~/workspace
+
 # Run docker container with particular env vars and shared folder mapped to /home/$USER/workspace
 docker run -ti --name u2204 \
 -e U=$USER -e USER_ID=$UID \
