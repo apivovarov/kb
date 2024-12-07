@@ -1,0 +1,38 @@
+[user]
+    name = Alexander Pivovarov
+    email = apivovarov@gmail.com
+
+[branch]
+    autosetuprebase = always
+
+[color]
+    ui = auto
+
+[core]
+    pager = less -FMRiX
+    excludesfile = ~/.config/git/excludes
+
+[push]
+    default = simple
+
+[pull]
+    rebase = true
+
+[alias]
+    co = checkout
+    st = status
+    br = branch
+    ci = commit
+    sub = submodule update --init --recursive
+    dag = log --graph --format='format:%C(yellow)%h%C(reset) %C(blue)\"%an\" <%ae>%C(reset) %C(magenta)%ar%C(reset)%C(auto)%d%C(reset)%n%s' --date-order
+    lg = log --oneline --graph --decorate --all
+    lol = log --oneline --graph --color
+
+[diff]
+    ignoreSubmodules = dirty
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
